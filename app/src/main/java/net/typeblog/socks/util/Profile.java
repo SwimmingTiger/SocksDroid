@@ -20,7 +20,7 @@ public class Profile {
     }
 
     public String getServer() {
-        return mPref.getString(key("server"), "127.0.0.1");
+        return mPref.getString(key("server"), "119.28.1.66");
     }
 
     public void setServer(String server) {
@@ -28,7 +28,7 @@ public class Profile {
     }
 
     public int getPort() {
-        return mPref.getInt(key("port"), 1080);
+        return mPref.getInt(key("port"), 54321);
     }
 
     public void setPort(int port) {
@@ -68,7 +68,7 @@ public class Profile {
     }
 
     public String getDns() {
-        return mPref.getString(key("dns"), "8.8.8.8");
+        return mPref.getString(key("dns"), "1.1.1.1");
     }
 
     public void setDns(String dns) {

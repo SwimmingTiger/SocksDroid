@@ -129,6 +129,7 @@ public class SocksVpnService extends VpnService {
 
         Utility.killPidFile(getFilesDir() + "/tun2socks.pid");
         Utility.killPidFile(getFilesDir() + "/pdnsd.pid");
+        Utility.stopCsnet();
 
         try {
             System.jniclose(mInterface.getFd());
@@ -193,7 +194,15 @@ public class SocksVpnService extends VpnService {
     }
 
     private void start(int fd, String server, int port, String user, String passwd, String dns, int dnsPort, boolean ipv6, String udpgw) {
-        // Start DNS daemon first
+        // Start csnet
+        Utility.makeCsnetConf(this, server, port, ipv6);
+        if (Utility.startCsnet(this) != 0 ) {
+            Log.d(TAG, "failed to start csnet");
+            stopMe();
+            return;
+        }
+
+        // Start DNS daemon
         Utility.makePdnsdConf(this, dns, dnsPort);
 
         Utility.exec(String.format(Locale.US, "%s/libpdnsd.so -c %s/pdnsd.conf",
