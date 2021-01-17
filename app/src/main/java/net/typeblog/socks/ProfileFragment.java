@@ -3,6 +3,7 @@ package net.typeblog.socks;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -32,7 +33,10 @@ import net.typeblog.socks.util.Profile;
 import net.typeblog.socks.util.ProfileManager;
 import net.typeblog.socks.util.Utility;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -90,6 +94,11 @@ public class ProfileFragment extends PreferenceFragment implements Preference.On
     private MultiSelectListPreference mPrefAppList;
     private EditTextPreference mPrefUDPGW;
     private CheckBoxPreference mPrefUserpw, mPrefPerApp, mPrefAppBypass, mPrefIPv6, mPrefUDP, mPrefAuto;
+    private Context context;
+
+    public void setContext(Context context) {
+        this.context = context;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -188,7 +197,8 @@ public class ProfileFragment extends PreferenceFragment implements Preference.On
             List<String> newValues = new ArrayList<>((HashSet<String>) newValue);
             String appList = TextUtils.join("\n", newValues);
             mProfile.setAppList(appList);
-            Log.d("setAppList", "appList:\n" + appList);
+            updateAppList();
+            Log.d("setAppList", "appList:\n" + mProfile.getAppList());
             return true;
         } else if (p == mPrefIPv6) {
             mProfile.setHasIPv6(Boolean.parseBoolean(newValue.toString()));
@@ -290,29 +300,72 @@ public class ProfileFragment extends PreferenceFragment implements Preference.On
         mPrefUDPGW.setText(mProfile.getUDPGW());
         resetText(mPrefServer, mPrefPort, mPrefUsername, mPrefPassword, mPrefDns, mPrefDnsPort, mPrefUDPGW);
 
+        updateAppList();
+    }
+
+    private void updateAppList() {
+        HashSet<String> selectedApps = new HashSet<String>(Arrays.asList(mProfile.getAppList().split("\n")));
+        List<String> selectedAndExistsApps = new ArrayList<String>();
+
         Map<String, String> packages = getPackages();
         CharSequence[] titles = new CharSequence[packages.size()];
         CharSequence[] packageNames = new CharSequence[packages.size()];
 
+        //--------------- 给应用列表排序 ---------------
         int i = 0;
+
+        // 首先添加选中的应用，这样选中的应用就会排在前面
         for (Map.Entry<String, String> entry : packages.entrySet()) {
-            packageNames[i] = entry.getValue();
-            titles[i] = entry.getKey();
-            i++;
+            if (selectedApps.contains(entry.getValue())) {
+                selectedAndExistsApps.add(entry.getValue());
+                packageNames[i] = entry.getValue();
+                titles[i] = entry.getKey();
+                i++;
+            }
+        }
+        // 接下来添加未选中的应用
+        for (Map.Entry<String, String> entry : packages.entrySet()) {
+            if (!selectedApps.contains(entry.getValue())) {
+                packageNames[i] = entry.getValue();
+                titles[i] = entry.getKey();
+                i++;
+            }
         }
 
         mPrefAppList.setEntries(titles);
         mPrefAppList.setEntryValues(packageNames);
+
+        // 更新存储的AppList（删掉了不存在的应用）
+        mProfile.setAppList(TextUtils.join("\n", selectedAndExistsApps));
     }
 
     private Map<String, String> getPackages() {
         Map<String, String> packages = new TreeMap<String, String>();
         try {
-            List<PackageInfo> packageInfos = getContext().getPackageManager().getInstalledPackages(0);
+            String myself = context.getApplicationInfo().packageName;
+            List<PackageInfo> packageInfos = context.getPackageManager().getInstalledPackages(0);
+
+            // 统计是否重名
+            Map<String, Integer> nameCount = new HashMap<String, Integer>();
             for (PackageInfo info : packageInfos) {
-                String appName = info.applicationInfo.loadLabel(getContext().getPackageManager()).toString();
+                String appName = info.applicationInfo.loadLabel(context.getPackageManager()).toString();
+                if (nameCount.containsKey(appName)) {
+                    nameCount.put(appName, nameCount.get(appName) + 1);
+                } else {
+                    nameCount.put(appName, 1);
+                }
+            }
+
+            for (PackageInfo info : packageInfos) {
+                String appName = info.applicationInfo.loadLabel(context.getPackageManager()).toString();
                 String packageName = info.packageName;
-                packages.put(appName, packageName);
+                if (!myself.equals(packageName)) {
+                    // 重名自动加包名做为后缀
+                    if (nameCount.get(appName) > 1) {
+                        appName = appName + " (" + packageName + ")";
+                    }
+                    packages.put(appName, packageName);
+                }
             }
         } catch (Throwable t) {
             t.printStackTrace();;
