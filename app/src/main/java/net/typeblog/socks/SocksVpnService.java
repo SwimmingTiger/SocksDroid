@@ -95,7 +95,7 @@ public class SocksVpnService extends VpnService {
                 .build());
 
         // Create an fd.
-        configure(name, route, perApp, appBypass, appList, ipv6);
+        configure(name, server, route, perApp, appBypass, appList, ipv6);
 
         if (DEBUG)
             Log.d(TAG, "fd: " + mInterface.getFd());
@@ -140,7 +140,7 @@ public class SocksVpnService extends VpnService {
         stopSelf();
     }
 
-    private void configure(String name, String route, boolean perApp, boolean bypass, String[] apps, boolean ipv6) {
+    private void configure(String name, String server, String route, boolean perApp, boolean bypass, String[] apps, boolean ipv6) {
         Builder b = new Builder();
         b.setMtu(1500)
                 .setSession(name)
@@ -153,7 +153,7 @@ public class SocksVpnService extends VpnService {
                     .addRoute("::", 0);
         }
 
-        Routes.addRoutes(this, b, route);
+        Routes.addRoutes(this, b, route, server);
 
         // Add the default DNS
         // Note that this DNS is just a stub.
@@ -161,22 +161,8 @@ public class SocksVpnService extends VpnService {
         b.addRoute("8.8.8.8", 32);
 
         // Do app routing
-        if (!perApp) {
-            // Just bypass myself
-            try {
-                b.addDisallowedApplication("net.typeblog.socks");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else {
+        if (perApp) {
             if (bypass) {
-                // First, bypass myself
-                try {
-                    b.addDisallowedApplication("net.typeblog.socks");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
                 for (String p : apps) {
                     if (TextUtils.isEmpty(p))
                         continue;
@@ -189,12 +175,13 @@ public class SocksVpnService extends VpnService {
                 }
             } else {
                 for (String p : apps) {
-                    if (TextUtils.isEmpty(p) || p.trim().equals("net.typeblog.socks")) {
+                    p = p.trim();
+                    if (TextUtils.isEmpty(p)) {
                         continue;
                     }
 
                     try {
-                        b.addAllowedApplication(p.trim());
+                        b.addAllowedApplication(p);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -221,7 +208,7 @@ public class SocksVpnService extends VpnService {
                         + " --loglevel 3"
                         + " --pid %s/tun2socks.pid"
                         + " --sock %s/sock_path"
-                , getApplicationInfo().nativeLibraryDir, server, port, fd, getFilesDir(), getApplicationInfo().dataDir);
+                , getApplicationInfo().nativeLibraryDir, "127.0.0.1", port, fd, getFilesDir(), getApplicationInfo().dataDir);
 
         if (user != null) {
             command += " --username " + user;
