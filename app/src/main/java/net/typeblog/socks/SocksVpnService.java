@@ -166,7 +166,8 @@ public class SocksVpnService extends VpnService {
             if (bypass) {
                 for (String p : apps) {
                     p = p.trim();
-                    if (TextUtils.isEmpty(p) || p.equals("net.typeblog.socks"))
+                    // should not bypass myself (to proxy DNS resolving)
+                    if (TextUtils.isEmpty(p) || p.equals(getApplicationInfo().packageName))
                         continue;
 
                     try {
@@ -178,14 +179,14 @@ public class SocksVpnService extends VpnService {
             } else {
                 try {
                     // First, proxy myself (to proxy DNS resolving)
-                    b.addAllowedApplication("net.typeblog.socks");
+                    b.addAllowedApplication(getApplicationInfo().packageName);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
 
                 for (String p : apps) {
                     p = p.trim();
-                    if (TextUtils.isEmpty(p) || p.equals("net.typeblog.socks")) {
+                    if (TextUtils.isEmpty(p) || p.equals(getApplicationInfo().packageName)) {
                         continue;
                     }
 

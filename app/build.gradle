@@ -3,11 +3,11 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 29
     defaultConfig {
-        applicationId "net.typeblog.socks"
+        applicationId "xyz.aite.csnet.socksdroid"
         minSdkVersion 21
         targetSdkVersion 29
-        versionCode 12
-        versionName "1.0.3"
+        versionCode 3
+        versionName "0.0.3"
     }
     buildTypes {
         release {
