@@ -6,16 +6,20 @@ import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.net.VpnService;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
+import android.preference.MultiSelectListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.ListPreference;
 import android.text.InputType;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MenuInflater;
@@ -28,7 +32,13 @@ import net.typeblog.socks.util.Profile;
 import net.typeblog.socks.util.ProfileManager;
 import net.typeblog.socks.util.Utility;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
 
 import static net.typeblog.socks.util.Constants.*;
 
@@ -71,8 +81,14 @@ public class ProfileFragment extends PreferenceFragment implements Preference.On
     private IVpnService mBinder;
 
     private ListPreference mPrefProfile, mPrefRoutes;
-    private EditTextPreference mPrefServer, mPrefPort, mPrefUsername, mPrefPassword,
-            mPrefDns, mPrefDnsPort, mPrefAppList, mPrefUDPGW;
+    private EditTextPreference mPrefServer;
+    private EditTextPreference mPrefPort;
+    private EditTextPreference mPrefUsername;
+    private EditTextPreference mPrefPassword;
+    private EditTextPreference mPrefDns;
+    private EditTextPreference mPrefDnsPort;
+    private MultiSelectListPreference mPrefAppList;
+    private EditTextPreference mPrefUDPGW;
     private CheckBoxPreference mPrefUserpw, mPrefPerApp, mPrefAppBypass, mPrefIPv6, mPrefUDP, mPrefAuto;
 
     @Override
@@ -169,7 +185,10 @@ public class ProfileFragment extends PreferenceFragment implements Preference.On
             mProfile.setIsBypassApp(Boolean.parseBoolean(newValue.toString()));
             return true;
         } else if (p == mPrefAppList) {
-            mProfile.setAppList(newValue.toString());
+            List<String> newValues = new ArrayList<>((HashSet<String>) newValue);
+            String appList = TextUtils.join("\n", newValues);
+            mProfile.setAppList(appList);
+            Log.d("setAppList", "appList:\n" + appList);
             return true;
         } else if (p == mPrefIPv6) {
             mProfile.setHasIPv6(Boolean.parseBoolean(newValue.toString()));
@@ -220,7 +239,7 @@ public class ProfileFragment extends PreferenceFragment implements Preference.On
         mPrefDnsPort = (EditTextPreference) findPreference(PREF_ADV_DNS_PORT);
         mPrefPerApp = (CheckBoxPreference) findPreference(PREF_ADV_PER_APP);
         mPrefAppBypass = (CheckBoxPreference) findPreference(PREF_ADV_APP_BYPASS);
-        mPrefAppList = (EditTextPreference) findPreference(PREF_ADV_APP_LIST);
+        mPrefAppList = (MultiSelectListPreference) findPreference(PREF_ADV_APP_LIST);
         mPrefIPv6 = (CheckBoxPreference) findPreference(PREF_IPV6_PROXY);
         mPrefUDP = (CheckBoxPreference) findPreference(PREF_UDP_PROXY);
         mPrefUDPGW = (EditTextPreference) findPreference(PREF_UDP_GW);
@@ -271,7 +290,34 @@ public class ProfileFragment extends PreferenceFragment implements Preference.On
         mPrefUDPGW.setText(mProfile.getUDPGW());
         resetText(mPrefServer, mPrefPort, mPrefUsername, mPrefPassword, mPrefDns, mPrefDnsPort, mPrefUDPGW);
 
-        mPrefAppList.setText(mProfile.getAppList());
+        Map<String, String> packages = getPackages();
+        CharSequence[] titles = new CharSequence[packages.size()];
+        CharSequence[] packageNames = new CharSequence[packages.size()];
+
+        int i = 0;
+        for (Map.Entry<String, String> entry : packages.entrySet()) {
+            packageNames[i] = entry.getValue();
+            titles[i] = entry.getKey();
+            i++;
+        }
+
+        mPrefAppList.setEntries(titles);
+        mPrefAppList.setEntryValues(packageNames);
+    }
+
+    private Map<String, String> getPackages() {
+        Map<String, String> packages = new TreeMap<String, String>();
+        try {
+            List<PackageInfo> packageInfos = getContext().getPackageManager().getInstalledPackages(0);
+            for (PackageInfo info : packageInfos) {
+                String appName = info.applicationInfo.loadLabel(getContext().getPackageManager()).toString();
+                String packageName = info.packageName;
+                packages.put(appName, packageName);
+            }
+        } catch (Throwable t) {
+            t.printStackTrace();;
+        }
+        return packages;
     }
 
     private void resetList(ListPreference... pref) {
