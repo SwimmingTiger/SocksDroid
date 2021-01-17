@@ -4,14 +4,14 @@
     "type": "APK",
     "kind": "Directory"
   },
-  "applicationId": "net.typeblog.socks",
+  "applicationId": "xyz.aite.csnet.socksdroid",
   "variantName": "processReleaseResources",
   "elements": [
     {
       "type": "SINGLE",
       "filters": [],
-      "versionCode": 12,
-      "versionName": "1.0.3",
+      "versionCode": 3,
+      "versionName": "0.0.3",
       "outputFile": "app-release.apk"
     }
   ]

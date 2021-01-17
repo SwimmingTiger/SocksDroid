@@ -1,10 +1,10 @@
-SocksDroid
+CSNetDroid
 ==========
 
-## SOCKS5 client for Android 5.0+ using VpnService
+## Android 5.0+ 上的 CSNET 客户端
 
-This is an updated version of [SocksDroid by PeterCxy](https://github.com/PeterCxy/SocksDroid) to support modern Android devices.
+该项目是 [SocksDroid by bndeff](https://github.com/bndeff/socksdroid) 的修改版，用于在安卓上使用 [CSNet](https://csnet.aite.xyz/)。
 
-The project is in maintenance mode: no new features are planned, only bug fixes and compatibility upgrades.
+## 下载
 
-[<img src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" width="200">](https://play.google.com/store/apps/details?id=net.typeblog.socks)
+[apk下载页面](app/release)
