@@ -16,7 +16,7 @@ ip_version = {IP_VERSION}\
 ; 设置一个http代理地址\
 ; 通常设置为CSNet代理地址\
 ; 设置后，doh走指定的代理查询\
-http_proxy = http://127.0.0.1:54321/\
+http_proxy = http://127.0.0.1:{PORT}/\
 \
 ; 设置CSNet的公共服务器地址\
 ; 不设置时使用默认的公共服务器\
