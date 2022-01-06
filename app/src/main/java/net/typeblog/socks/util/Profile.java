@@ -20,7 +20,7 @@ public class Profile {
     }
 
     public String getServer() {
-        return mPref.getString(key("server"), "119.28.1.66");
+        return mPref.getString(key("server"), "public.csnet.aite.xyz");
     }
 
     public void setServer(String server) {

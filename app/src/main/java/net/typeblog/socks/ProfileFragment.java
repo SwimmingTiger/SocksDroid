@@ -11,7 +11,9 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.VpnService;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.MultiSelectListPreference;
@@ -227,13 +229,31 @@ public class ProfileFragment extends PreferenceFragment implements Preference.On
         }
     }
 
+    class StartVpnCallback extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            Bundle data = msg.getData();
+            if (data != null) {
+                boolean success = data.getBoolean("success");
+                if (success) {
+                    checkState();
+                }
+
+                String toast = data.getString("toast");
+                if (toast != null) {
+                    Toast.makeText(getActivity().getApplicationContext(), toast, Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (resultCode == Activity.RESULT_OK) {
-            Utility.startVpn(getActivity(), mProfile);
-            checkState();
+            Utility.startVpn(getActivity(), mProfile, new StartVpnCallback());
         }
     }
 

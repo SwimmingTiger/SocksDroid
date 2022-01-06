@@ -2,13 +2,19 @@ package net.typeblog.socks.util;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.FileOutputStream;
+import java.net.Inet4Address;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -158,31 +164,75 @@ public class Utility {
         }
     }
 
-    public static void startVpn(Context context, Profile profile) {
-        Intent i = new Intent(context, SocksVpnService.class)
-                .putExtra(INTENT_NAME, profile.getName())
-                .putExtra(INTENT_SERVER, profile.getServer())
-                .putExtra(INTENT_PORT, profile.getPort())
-                .putExtra(INTENT_ROUTE, profile.getRoute())
-                .putExtra(INTENT_DNS, profile.getDns())
-                .putExtra(INTENT_DNS_PORT, profile.getDnsPort())
-                .putExtra(INTENT_PER_APP, profile.isPerApp())
-                .putExtra(INTENT_IPV6_PROXY, profile.hasIPv6());
+    public static void startVpn(Context context, Profile profile, Handler handler) {
+        class StartVpnThread implements Runnable {
+            Context context;
+            Profile profile;
+            Handler handler;
 
-        if (profile.isUserPw()) {
-            i.putExtra(INTENT_USERNAME, profile.getUsername())
-                    .putExtra(INTENT_PASSWORD, profile.getPassword());
+            public StartVpnThread(Context context, Profile profile, Handler handler) {
+                this.context = context;
+                this.profile = profile;
+                this.handler = handler;
+            }
+
+            @Override
+            public void run() {
+                String server = profile.getServer();
+                try {
+                    Log.i(TAG, "server host: " + server);
+                    server = Inet4Address.getByName(server).getHostAddress();
+                    Log.i(TAG, "server ip: " + server);
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                    if (handler != null) {
+                        String toast = context.getResources().getString(R.string.cannot_resolve_host, server);
+                        Bundle data = new Bundle();
+                        data.putBoolean("success", false);
+                        data.putString("toast", toast);
+                        Message msg = new Message();
+                        msg.setData(data);
+                        handler.sendMessage(msg);
+                    }
+                    return;
+                }
+
+                Intent i = new Intent(context, SocksVpnService.class)
+                        .putExtra(INTENT_NAME, profile.getName())
+                        .putExtra(INTENT_SERVER, server)
+                        .putExtra(INTENT_PORT, profile.getPort())
+                        .putExtra(INTENT_ROUTE, profile.getRoute())
+                        .putExtra(INTENT_DNS, profile.getDns())
+                        .putExtra(INTENT_DNS_PORT, profile.getDnsPort())
+                        .putExtra(INTENT_PER_APP, profile.isPerApp())
+                        .putExtra(INTENT_IPV6_PROXY, profile.hasIPv6());
+
+                if (profile.isUserPw()) {
+                    i.putExtra(INTENT_USERNAME, profile.getUsername())
+                            .putExtra(INTENT_PASSWORD, profile.getPassword());
+                }
+
+                if (profile.isPerApp()) {
+                    i.putExtra(INTENT_APP_BYPASS, profile.isBypassApp())
+                            .putExtra(INTENT_APP_LIST, profile.getAppList().split("\n"));
+                }
+
+                if (profile.hasUDP()) {
+                    i.putExtra(INTENT_UDP_GW, profile.getUDPGW());
+                }
+
+                context.startService(i);
+
+                if (handler != null) {
+                    Bundle data = new Bundle();
+                    data.putBoolean("success", true);
+                    Message msg = new Message();
+                    msg.setData(data);
+                    handler.sendMessage(msg);
+                }
+            }
         }
 
-        if (profile.isPerApp()) {
-            i.putExtra(INTENT_APP_BYPASS, profile.isBypassApp())
-                    .putExtra(INTENT_APP_LIST, profile.getAppList().split("\n"));
-        }
-
-        if (profile.hasUDP()) {
-            i.putExtra(INTENT_UDP_GW, profile.getUDPGW());
-        }
-
-        context.startService(i);
+        new Thread(new StartVpnThread(context, profile, handler)).start();
     }
 }

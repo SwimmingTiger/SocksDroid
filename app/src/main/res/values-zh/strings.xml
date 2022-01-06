@@ -7,7 +7,7 @@
     <string name="prof_default">默认</string>
 
     <string name="connection">连接</string>
-    <string name="server_ip">服务器IP</string>
+    <string name="server_ip">服务器地址</string>
     <string name="server_port">本地端口</string>
     <string name="ipv6_proxy">IPv6</string>
     <string name="ipv6_proxy_sum">启用IPv6转发。如果服务器支持IPv6，启用该选项后你可以通过IPv4网络访问IPv6内容。</string>
@@ -43,5 +43,6 @@
     <string name="notify_title">CSNet代理已启用</string>
     <string name="notify_msg">已连接到%s</string>
     <string name="channel_name">代理启用通知</string>
+    <string name="cannot_resolve_host">解析服务器域名失败: %s</string>
 
 </resources>
