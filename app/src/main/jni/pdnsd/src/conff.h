@@ -145,7 +145,7 @@ typedef struct {
 	char	      onquery;
 	char          rnd_recs;
 	int           ctl_perms;
-        char         *scheme_file;
+    char         *scheme_file;
 	int           proc_limit;
 	int           procq_limit;
 	time_t        tcp_qtimeout;
@@ -156,6 +156,7 @@ typedef struct {
 	int           query_port_end;
 	int           udpbufsize;
 	zone_array    deleg_only_zones;
+	char         *http_proxy_host;
 } globparm_t;
 
 typedef struct {

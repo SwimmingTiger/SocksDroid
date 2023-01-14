@@ -25,6 +25,7 @@
 #ifdef HAVE_SYS_POLL_H
 #include <sys/poll.h>
 #endif
+#include <stdio.h>
 #include <stdlib.h>
 #include <netdb.h>
 #include <errno.h>
@@ -115,6 +116,7 @@ typedef struct {
 	dns_hdr_t           *recvbuf;
 	unsigned short      myrid;
 	int                 s_errno;
+	int                 http_header;
 } query_stat_t;
 typedef DYNAMIC_ARRAY(query_stat_t) *query_stat_array;
 
@@ -924,6 +926,17 @@ static int p_query_sm(query_stat_t *st)
 		{
 			int rem= dnsmsghdroffset + st->transl - st->iolen;
 			if(rem>0) {
+				// write HTTP proxy header
+				if (global.http_proxy_host && st->http_header == 0) {
+					char httpProxyHeader[1024];
+					snprintf(httpProxyHeader, sizeof(httpProxyHeader), "CONNECT %s HTTP/1.1\r\n\r\n", global.http_proxy_host);
+
+					DEBUG_MSG("http proxy: %s\n", httpProxyHeader);
+
+					write(st->sock, httpProxyHeader, strlen(httpProxyHeader));
+					st->http_header = 1;
+				}
+
 				rv=write(st->sock,((unsigned char*)st->msg)+st->iolen,rem);
 				if(rv==-1) {
 					if(errno==EWOULDBLOCK)
@@ -951,7 +964,36 @@ static int p_query_sm(query_stat_t *st)
 		/* st->event=QEV_READ; */
 		/* fall through */
 	case QS_TCPREAD:
-	        if(st->iolen==0) {
+	    if(st->iolen==0) {
+			// read HTTP proxy header
+			if (st->http_header == 1) {
+				char buf[4] = {0};
+				int index = 0;
+				for (;;) {
+					rv = read(st->sock, &buf[index], 1);
+
+					DEBUG_MSG(
+						"http header: %d, buf[%d]: %02x, buf: %02x %02x %02x %02x\n",
+						rv, index,
+						buf[index],
+						buf[0], buf[1], buf[2], buf[3]);
+
+					if (rv != 1) break;
+
+					// http header finished
+					if (buf[(index + 1) % 4] == '\r' &&
+						buf[(index + 2) % 4] == '\n' &&
+						buf[(index + 3) % 4] == '\r' &&
+						buf[ index         ] == '\n'
+					) {
+						DEBUG_MSG("http header finished\n");
+						st->http_header = 2;
+						break;
+					}
+					index = (index + 1) % 4;
+				}
+			}
+
 			uint16_t recvl_net;
 			rv=read(st->sock,&recvl_net,sizeof(recvl_net));
 			if(rv==-1 && errno==EWOULDBLOCK)

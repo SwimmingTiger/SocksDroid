@@ -169,7 +169,9 @@ static const char help_message[] =
 	"\t\tthe system supports IPv6, and revert to IPv4 otherwise.\n"
 #endif
 	"\n\n\"no\" can be prepended to the --status, --daemon, --debug and --tcp\n"
-	"options (e.g. --notcp) to reverse their effect.\n";
+	"options (e.g. --notcp) to reverse their effect.\n"
+	"\n\n--http_proxy_host <host>:<port>\tTreat the upstream server as an HTTP proxy "
+	"and send the following host:port to it to connect to the real TCP DNS upstream.";
 
 
 /* These are some init steps we have to call before we get daemon on linux, but need
@@ -244,7 +246,9 @@ int main(int argc,char *argv[])
 	   shall override the ones given in the config file */
 	for (i=1;i<argc;i++) {
 		char *arg=argv[i];
-		if (strcmp(arg,"-h")==0 || strcmp(arg,"--help")==0) {
+		if (strcmp(arg,"--http_proxy_host")==0 && i+1<argc) {
+			global.http_proxy_host = argv[++i];
+		} else if (strcmp(arg,"-h")==0 || strcmp(arg,"--help")==0) {
 			fputs(info_message,stdout);
 			fputs(help_message,stdout);
 			exit(1);
