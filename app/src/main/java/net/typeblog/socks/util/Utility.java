@@ -180,7 +180,7 @@ public class Utility {
             e.printStackTrace();
         }
 
-        File cache = new File(context.getFilesDir() + "/pdnsd.cache");
+        /*File cache = new File(context.getFilesDir() + "/pdnsd.cache");
 
         if (!cache.exists()) {
             try {
@@ -189,7 +189,7 @@ public class Utility {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }
+        }*/
     }
 
     public static void startVpn(Context context, Profile profile, Handler handler) {

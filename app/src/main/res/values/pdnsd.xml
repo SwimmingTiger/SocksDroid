@@ -2,13 +2,11 @@
 <resources>
 	<string name="pdnsd_conf" formatted="false"><![CDATA[
 global {\
-	perm_cache=1024;\
+	perm_cache=off;\
 	cache_dir="{DIR}";\
 	server_port = {SRVPORT};\
 	server_ip = 0.0.0.0;\
 	query_method=tcp_only;\
-	min_ttl=15m;\
-	max_ttl=1w;\
 	timeout=10;\
 	daemon=on;\
 	pid_file="{DIR}/pdnsd.pid";\
