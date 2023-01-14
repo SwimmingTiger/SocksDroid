@@ -224,7 +224,7 @@ public class SocksVpnService extends VpnService {
 
         // Start DNS daemon
         Utility.exec(String.format(Locale.US, "%s/libdnsproxy.so "
-                        + "-v 99 --cache --listen 0.0.0.0 --port %d --upstream %s "
+                        + "-v 99 --cache --listen 26.26.26.1 --port %d --upstream %s "
                         + "--socks5 %s:%s --pid-file %s/dnsproxy.pid --output %s/dnsproxy.log",
                 getApplicationInfo().nativeLibraryDir,
                 dnsPort, Utility.escapeShellArgument(dns),
