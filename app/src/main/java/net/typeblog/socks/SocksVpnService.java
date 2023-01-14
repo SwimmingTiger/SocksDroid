@@ -133,7 +133,7 @@ public class SocksVpnService extends VpnService {
         stopForeground(true);
 
         Utility.killPidFile(getFilesDir() + "/tun2socks.pid");
-        Utility.killPidFile(getFilesDir() + "/pdnsd.pid");
+        Utility.killPidFile(getFilesDir() + "/dnsproxy.pid");
         Utility.stopCsnet();
 
         try {
@@ -212,9 +212,10 @@ public class SocksVpnService extends VpnService {
         mInterface = b.establish();
     }
 
-    private void start(int fd, String server, int port, String user, String passwd, String dns, int dnsPort, boolean ipv6, String udpgw) {
+    private void start(int fd, String server, int port, String user, String passwd,
+                       String dns, int dnsPort, boolean ipv6, String udpgw) {
         // Start csnet
-        Utility.makeCsnetConf(this, server, port, user, passwd, ipv6);
+        Utility.makeCsnetConf(this, server, port, user, passwd, ipv6, dns);
         if (Utility.startCsnet(this) != 0 ) {
             Log.d(TAG, "failed to start csnet");
             stopMe();
@@ -222,11 +223,12 @@ public class SocksVpnService extends VpnService {
         }
 
         // Start DNS daemon
-        Utility.makePdnsdConf(this, server, port); // 使用HTTP代理连接，这里提供代理的IP和端口
-
-        Utility.exec(String.format(Locale.US, "%s/libpdnsd.so -c %s/pdnsd.conf --http_proxy_host %s:%d",
-                getApplicationInfo().nativeLibraryDir, getFilesDir(),
-                Utility.escapeShellArgument(dns), dnsPort)); // 这里提供TCP DNS的IP和端口
+        Utility.exec(String.format(Locale.US, "%s/libdnsproxy.so "
+                        + "-v 99 --listen 0.0.0.0 --port %d --upstream %s "
+                        + "--socks5 %s:%s --pid-file %s/dnsproxy.pid --output %s/dnsproxy.log",
+                getApplicationInfo().nativeLibraryDir,
+                dnsPort, Utility.escapeShellArgument(dns),
+                "127.0.0.1", port, getFilesDir(), getFilesDir()), false);
 
         String command = String.format(Locale.US,
                 "%s/libtun2socks.so --netif-ipaddr 26.26.26.2"
@@ -237,7 +239,8 @@ public class SocksVpnService extends VpnService {
                         + " --loglevel 3"
                         + " --pid %s/tun2socks.pid"
                         + " --sock %s/sock_path"
-                , getApplicationInfo().nativeLibraryDir, "127.0.0.1", port, fd, getFilesDir(), getApplicationInfo().dataDir);
+                , getApplicationInfo().nativeLibraryDir, "127.0.0.1", port,
+                fd, getFilesDir(), getApplicationInfo().dataDir);
 
         if (user != null) {
             command += " --username " + user;
@@ -248,7 +251,7 @@ public class SocksVpnService extends VpnService {
             command += " --netif-ip6addr fdfe:dcba:9876::2";
         }
 
-        command += " --dnsgw 26.26.26.1:8091";
+        command += String.format(Locale.US, " --dnsgw 26.26.26.1:%d", dnsPort);
 
         if (udpgw != null) {
             command += " --udpgw-remote-server-addr " + udpgw;

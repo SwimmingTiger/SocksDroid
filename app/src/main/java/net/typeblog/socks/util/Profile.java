@@ -68,7 +68,7 @@ public class Profile {
     }
 
     public String getDns() {
-        return mPref.getString(key("dns"), "1.1.1.1");
+        return mPref.getString(key("dns"), "https://1.12.12.12/dns-query");
     }
 
     public void setDns(String dns) {
@@ -76,7 +76,7 @@ public class Profile {
     }
 
     public int getDnsPort() {
-        return mPref.getInt(key("dns_port"), 53);
+        return mPref.getInt(key("dns_port"), 8091);
     }
 
     public void setDnsPort(int port) {

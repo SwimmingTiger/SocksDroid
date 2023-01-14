@@ -24,8 +24,8 @@
     <string name="adv_route">路由</string>
     <string name="adv_route_all">全部（默认）</string>
     <string name="adv_route_non_chn">不代理国内IP</string>
-    <string name="adv_dns">DNS服务器</string>
-    <string name="adv_dns_port">DNS端口（TCP）</string>
+    <string name="adv_dns">DNS over HTTPS（DoH）服务器</string>
+    <string name="adv_dns_port">本地DNS端口</string>
     <string name="adv_auto_connect">开机自动连接</string>
     <string name="adv_per_app">分应用代理</string>
     <string name="adv_app_bypass">旁路模式</string>
