@@ -100,7 +100,7 @@ public class Utility {
         return ret.substring(0, ret.length() - separator.length());
     }
 
-    public static void makeCsnetConf(Context context, String server, int port, String user, String passwd, boolean ipv6) {
+    public static void makeCsnetConf(Context context, String server, int port, String user, String passwd, boolean ipv6, String dns) {
         // 生成配置文件
         String conf = "";
 
@@ -121,7 +121,7 @@ public class Utility {
             jsonObject.put("direct_china", true);
             jsonObject.put("direct_private", true);
             jsonObject.put("use_doh_query", true);
-            jsonObject.put("doh_query_addr", "https://1.12.12.12/dns-query");
+            jsonObject.put("doh_query_addr", dns);
 
             jsonArray.put(jsonObject);
             conf = jsonArray.toString();
@@ -157,9 +157,10 @@ public class Utility {
         return exec("killall libcsnet.so");
     }
 
-    public static void makePdnsdConf(Context context, String dns, int port) {
+    public static void makePdnsdConf(Context context, String dns, int port, int serverPort) {
         String conf = context.getString(R.string.pdnsd_conf)
                 .replace("{DIR}", context.getFilesDir().toString())
+                .replace("{SRVPORT}", Integer.toString(serverPort))
                 .replace("{IP}", dns)
                 .replace("{PORT}", Integer.toString(port));
 

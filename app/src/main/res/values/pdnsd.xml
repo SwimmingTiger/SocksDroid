@@ -4,7 +4,7 @@
 global {\
 	perm_cache=1024;\
 	cache_dir="{DIR}";\
-	server_port = 8091;\
+	server_port = {SRVPORT};\
 	server_ip = 0.0.0.0;\
 	query_method=tcp_only;\
 	min_ttl=15m;\

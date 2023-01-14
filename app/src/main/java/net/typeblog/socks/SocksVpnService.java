@@ -134,6 +134,7 @@ public class SocksVpnService extends VpnService {
 
         Utility.killPidFile(getFilesDir() + "/tun2socks.pid");
         Utility.killPidFile(getFilesDir() + "/pdnsd.pid");
+        Utility.killPidFile(getFilesDir() + "/dnsproxy.pid");
         Utility.stopCsnet();
 
         try {
@@ -212,21 +213,32 @@ public class SocksVpnService extends VpnService {
         mInterface = b.establish();
     }
 
-    private void start(int fd, String server, int port, String user, String passwd, String dns, int dnsPort, boolean ipv6, String udpgw) {
+    private void start(int fd, String server, int port, String user, String passwd,
+                       String dns, int dnsPort, boolean ipv6, String udpgw) {
         // Start csnet
-        Utility.makeCsnetConf(this, server, port, user, passwd, ipv6);
+        Utility.makeCsnetConf(this, server, port, user, passwd, ipv6, dns);
         if (Utility.startCsnet(this) != 0 ) {
             Log.d(TAG, "failed to start csnet");
             stopMe();
             return;
         }
 
-        // Start DNS daemon
-        Utility.makePdnsdConf(this, server, port); // 使用HTTP代理连接，这里提供代理的IP和端口
+        // Start dnsproxy
+        // 不知何故 dnsproxy 无法发包到安卓 VPN 的 tun0 接口，所以要使用 pdnsd 作为中继
+        Utility.exec(String.format(Locale.US, "%s/libdnsproxy.so "
+                        + "--cache --listen 0.0.0.0 --port %d --upstream %s "
+                        + "--socks5 %s:%s --pid-file %s/dnsproxy.pid",
+                getApplicationInfo().nativeLibraryDir,
+                dnsPort, Utility.escapeShellArgument(dns),
+                "127.0.0.1", port, getFilesDir()), false);
 
-        Utility.exec(String.format(Locale.US, "%s/libpdnsd.so -c %s/pdnsd.conf --http_proxy_host %s:%d",
-                getApplicationInfo().nativeLibraryDir, getFilesDir(),
-                Utility.escapeShellArgument(dns), dnsPort)); // 这里提供TCP DNS的IP和端口
+        // Start pdnsd
+        // 不知何故 dnsproxy 无法发包到安卓 VPN 的 tun0 接口，所以要使用 pdnsd 作为中继
+        int pdnsdPort = dnsPort - 1;
+        Utility.makePdnsdConf(this, "127.0.0.1", dnsPort, pdnsdPort);
+
+        Utility.exec(String.format(Locale.US, "%s/libpdnsd.so -c %s/pdnsd.conf",
+                getApplicationInfo().nativeLibraryDir, getFilesDir()));
 
         String command = String.format(Locale.US,
                 "%s/libtun2socks.so --netif-ipaddr 26.26.26.2"
@@ -237,7 +249,8 @@ public class SocksVpnService extends VpnService {
                         + " --loglevel 3"
                         + " --pid %s/tun2socks.pid"
                         + " --sock %s/sock_path"
-                , getApplicationInfo().nativeLibraryDir, "127.0.0.1", port, fd, getFilesDir(), getApplicationInfo().dataDir);
+                , getApplicationInfo().nativeLibraryDir, "127.0.0.1", port,
+                fd, getFilesDir(), getApplicationInfo().dataDir);
 
         if (user != null) {
             command += " --username " + user;
@@ -248,7 +261,8 @@ public class SocksVpnService extends VpnService {
             command += " --netif-ip6addr fdfe:dcba:9876::2";
         }
 
-        command += " --dnsgw 26.26.26.1:8091";
+        // 不知何故 dnsproxy 无法发包到安卓 VPN 的 tun0 接口，所以要使用 pdnsd 作为中继
+        command += String.format(Locale.US, " --dnsgw 26.26.26.1:%d", pdnsdPort);
 
         if (udpgw != null) {
             command += " --udpgw-remote-server-addr " + udpgw;
