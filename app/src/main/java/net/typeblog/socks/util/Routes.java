@@ -13,6 +13,9 @@ public class Routes {
 
         if(ROUTE_CHN.equals(name)) {
             addRoutingTable(context, R.array.simple_route, builder, serverIpInt);
+        } else if (serverIpInt == 0) {
+            builder.addRoute("0.0.0.0", 0);
+            Log.d("addRoutes", "0.0.0.0/0");
         } else {
             routingTableExcludeIp(builder, serverIpInt, 0);
         }
