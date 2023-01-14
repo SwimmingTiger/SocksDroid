@@ -7,7 +7,7 @@
     <string name="prof_default">默认</string>
 
     <string name="connection">连接</string>
-    <string name="server_ip">服务器地址</string>
+    <string name="server_ip">本地地址</string>
     <string name="server_port">本地端口</string>
     <string name="ipv6_proxy">IPv6</string>
     <string name="ipv6_proxy_sum">启用IPv6转发。如果服务器支持IPv6，启用该选项后你可以通过IPv4网络访问IPv6内容。</string>

@@ -32,7 +32,7 @@ public class Routes {
             int prefixLength = Integer.parseInt(cidr[1]);
             int suffixLength = 32 - prefixLength;
 
-            if ((serverIpInt >> suffixLength) == (subnetInt >> suffixLength)) {
+            if (serverIpInt != 0 && (serverIpInt >> suffixLength) == (subnetInt >> suffixLength)) {
                 routingTableExcludeIp(builder, serverIpInt, prefixLength);
             } else {
                 builder.addRoute(subnet, prefixLength);

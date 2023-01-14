@@ -24,6 +24,10 @@ import net.typeblog.socks.R;
 import net.typeblog.socks.SocksVpnService;
 import static net.typeblog.socks.util.Constants.*;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.json.JSONStringer;
+
 public class Utility {
     private static final String TAG = Utility.class.getSimpleName();
 
@@ -95,18 +99,40 @@ public class Utility {
         return ret.substring(0, ret.length() - separator.length());
     }
 
-    public static void makeCsnetConf(Context context, String server, int port, boolean ipv6) {
+    public static void makeCsnetConf(Context context, String server, int port, String user, String passwd, boolean ipv6) {
         // 生成配置文件
-        String conf = context.getString(R.string.csnet_conf)
-                .replace("{SERVER}", server)
-                .replace("{PORT}", Integer.toString(port))
-                .replace("{IP_VERSION}", Integer.toString(ipv6 ? 0 : 1));
+        String conf = "";
 
-        File f = new File(context.getFilesDir() + "/csnet_client_config.ini");
+        try {
+            JSONArray jsonArray = new JSONArray();
+            JSONObject jsonObject = new JSONObject();
+
+            jsonObject.put("listen_addr", server + ":" + port);
+            jsonObject.put("tcp_timeout", 60);
+            jsonObject.put("sa_username", user);
+            jsonObject.put("sa_password", passwd);
+            jsonObject.put("proxy_ipv4", true);
+            jsonObject.put("resolve_ipv4", true);
+            jsonObject.put("proxy_ipv6", ipv6);
+            jsonObject.put("resolve_ipv6", ipv6);
+            jsonObject.put("priority_ipv6", ipv6);
+            jsonObject.put("direct_all", false);
+            jsonObject.put("direct_china", true);
+            jsonObject.put("direct_private", true);
+            jsonObject.put("use_doh_query", true);
+            jsonObject.put("doh_query_addr", "https://1.12.12.12/dns-query");
+
+            jsonArray.put(jsonObject);
+            conf = jsonArray.toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        File f = new File(context.getFilesDir() + "/csnet_client_config.json");
 
         if (f.exists()) {
             if(!f.delete())
-                Log.w(TAG, "failed to delete csnet_client_config.ini");
+                Log.w(TAG, "failed to delete csnet_client_config.json");
         }
 
         try {
@@ -120,7 +146,7 @@ public class Utility {
     }
 
     public static int startCsnet(Context context) {
-        String cmd = context.getApplicationInfo().nativeLibraryDir + "/libcsnet.so -c " + context.getFilesDir() + "/csnet_client_config.ini";
+        String cmd = context.getApplicationInfo().nativeLibraryDir + "/libcsnet.so -c " + context.getFilesDir() + "/csnet_client_config.json";
         Log.d(TAG, "starting csnet: " + cmd);
         return exec(cmd, false);
     }

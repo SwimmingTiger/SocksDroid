@@ -159,7 +159,8 @@ public class SocksVpnService extends VpnService {
                     .addRoute("::", 0);
         }
 
-        Routes.addRoutes(this, b, route, server);
+        // 用 0.0.0.0 禁用服务器IP排除，因为 CSNET v4 的服务器IP在运行时可能会发生变化
+        Routes.addRoutes(this, b, route, "0.0.0.0");
 
         // Add the default DNS
         // Note that this DNS is just a stub.
@@ -169,26 +170,24 @@ public class SocksVpnService extends VpnService {
         // Do app routing
         if (perApp) {
             if (bypass) {
+                try {
+                    // First, don't proxy myself
+                    b.addDisallowedApplication(getApplicationInfo().packageName);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 for (String p : apps) {
                     p = p.trim();
-                    // should not bypass myself (to proxy DNS resolving)
                     if (TextUtils.isEmpty(p) || p.equals(getApplicationInfo().packageName))
                         continue;
 
                     try {
-                        b.addDisallowedApplication(p.trim());
+                        b.addDisallowedApplication(p);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
             } else {
-                try {
-                    // First, proxy myself (to proxy DNS resolving)
-                    b.addAllowedApplication(getApplicationInfo().packageName);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
                 for (String p : apps) {
                     p = p.trim();
                     if (TextUtils.isEmpty(p) || p.equals(getApplicationInfo().packageName)) {
@@ -202,6 +201,13 @@ public class SocksVpnService extends VpnService {
                     }
                 }
             }
+        } else {
+            try {
+                // First, don't proxy myself
+                b.addDisallowedApplication(getApplicationInfo().packageName);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         mInterface = b.establish();
@@ -209,7 +215,7 @@ public class SocksVpnService extends VpnService {
 
     private void start(int fd, String server, int port, String user, String passwd, String dns, int dnsPort, boolean ipv6, String udpgw) {
         // Start csnet
-        Utility.makeCsnetConf(this, server, port, ipv6);
+        Utility.makeCsnetConf(this, server, port, user, passwd, ipv6);
         if (Utility.startCsnet(this) != 0 ) {
             Log.d(TAG, "failed to start csnet");
             stopMe();

@@ -20,7 +20,7 @@ public class Profile {
     }
 
     public String getServer() {
-        return mPref.getString(key("server"), "public.csnet.aite.xyz");
+        return mPref.getString(key("server"), "127.0.0.1");
     }
 
     public void setServer(String server) {
@@ -68,7 +68,7 @@ public class Profile {
     }
 
     public String getDns() {
-        return mPref.getString(key("dns"), "1.1.1.1");
+        return mPref.getString(key("dns"), "127.0.0.1");
     }
 
     public void setDns(String dns) {
@@ -76,7 +76,7 @@ public class Profile {
     }
 
     public int getDnsPort() {
-        return mPref.getInt(key("dns_port"), 53);
+        return mPref.getInt(key("dns_port"), 54321);
     }
 
     public void setDnsPort(int port) {
