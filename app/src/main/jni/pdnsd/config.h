@@ -60,7 +60,7 @@
 /* In addition to choosing the presets, you may also completely disable
  * one of the protocols (TCP for preset UDP_ONLY and UDP for preset TCP_ONLY).
  * This saves some executable space. */
-/* #undef NO_UDP_QUERIES */
+#define NO_UDP_QUERIES
 /* #undef NO_TCP_QUERIES */
 
 /* With the following option, you can disable the TCP server functionality
