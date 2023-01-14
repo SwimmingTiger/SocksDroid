@@ -17,20 +17,6 @@ LOCAL_PATH := $(call my-dir)
 ROOT_PATH := $(LOCAL_PATH)
 
 ########################################################
-## pdnsd library
-########################################################
-
-include $(CLEAR_VARS)
-
-PDNSD_SOURCES  := $(wildcard $(LOCAL_PATH)/pdnsd/src/*.c)
-
-LOCAL_MODULE    := pdnsd
-LOCAL_SRC_FILES := $(PDNSD_SOURCES:$(LOCAL_PATH)/%=%)
-LOCAL_CFLAGS    := -Wall -O2 -I$(LOCAL_PATH)/pdnsd -DHAVE_STPCPY
-
-include $(BUILD_EXECUTABLE)
-
-########################################################
 ## libancillary
 ########################################################
 
