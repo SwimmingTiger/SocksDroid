@@ -223,10 +223,11 @@ public class SocksVpnService extends VpnService {
         }
 
         // Start DNS daemon
-        Utility.makePdnsdConf(this, dns, dnsPort);
+        Utility.makePdnsdConf(this, server, port); // 使用HTTP代理连接，这里提供代理的IP和端口
 
-        Utility.exec(String.format(Locale.US, "%s/libpdnsd.so -c %s/pdnsd.conf",
-                getApplicationInfo().nativeLibraryDir, getFilesDir()));
+        Utility.exec(String.format(Locale.US, "%s/libpdnsd.so -c %s/pdnsd.conf --http_proxy_host %s:%d",
+                getApplicationInfo().nativeLibraryDir, getFilesDir(),
+                Utility.escapeShellArgument(dns), dnsPort)); // 这里提供TCP DNS的IP和端口
 
         String command = String.format(Locale.US,
                 "%s/libtun2socks.so --netif-ipaddr 26.26.26.2"

@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import net.typeblog.socks.R;
 import net.typeblog.socks.SocksVpnService;
@@ -260,5 +261,11 @@ public class Utility {
         }
 
         new Thread(new StartVpnThread(context, profile, handler)).start();
+    }
+
+    private static final Pattern UNSAFE_PATTERN = Pattern.compile("[^A-Za-z0-9_\\-.,:/@]");
+
+    public static String escapeShellArgument(String input) {
+        return UNSAFE_PATTERN.matcher(input).replaceAll("\\\\$0");
     }
 }
