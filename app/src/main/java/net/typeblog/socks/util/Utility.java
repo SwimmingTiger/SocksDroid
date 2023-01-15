@@ -122,6 +122,7 @@ public class Utility {
             jsonObject.put("direct_private", true);
             jsonObject.put("use_doh_query", true);
             jsonObject.put("doh_query_addr", dns);
+            jsonObject.put("proxy_doh_req", true);
 
             jsonArray.put(jsonObject);
             conf = jsonArray.toString();
