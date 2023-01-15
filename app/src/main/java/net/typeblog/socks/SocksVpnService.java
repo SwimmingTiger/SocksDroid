@@ -137,7 +137,7 @@ public class SocksVpnService extends VpnService {
         Utility.stopCsnet();
 
         try {
-            System.jniclose(mInterface.getFd());
+            //System.jniclose(mInterface.getFd());
             mInterface.close();
         } catch (Exception e) {
             e.printStackTrace();
