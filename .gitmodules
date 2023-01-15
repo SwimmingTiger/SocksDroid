@@ -1,0 +1,3 @@
+[submodule "app/src/main/jni/dnsproxy"]
+	path = app/src/main/jni/dnsproxy
+	url = https://github.com/SwimmingTiger/dnsproxy.git
