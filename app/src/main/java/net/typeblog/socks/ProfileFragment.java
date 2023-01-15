@@ -109,6 +109,12 @@ public class ProfileFragment extends PreferenceFragment implements Preference.On
         mManager = new ProfileManager(getActivity().getApplicationContext());
         initPreferences();
         reload();
+        showCsnetVersion();
+    }
+
+    public void showCsnetVersion() {
+        EditTextPreference csnetVersion = (EditTextPreference) findPreference(PREF_CSNET_VERSION);
+        csnetVersion.setSummary(Utility.getCsnetVersion(this.context));
     }
 
     @Override

@@ -21,6 +21,7 @@ public class Constants
             INTENT_UDP_GW = INTENT_PREFIX + "UDPGW";
 
     public static final String PREF = "profile",
+            PREF_CSNET_VERSION = "csnet_version",
             PREF_PROFILE = "profile",
             PREF_LAST_PROFILE = "last_profile",
             PREF_SERVER_IP = "server_ip",

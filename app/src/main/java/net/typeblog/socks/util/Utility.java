@@ -8,9 +8,11 @@ import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.FileOutputStream;
 import java.net.Inet4Address;
@@ -144,6 +146,17 @@ public class Utility {
             out.close();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public static String getCsnetVersion(Context context) {
+        try {
+            String cmd = context.getApplicationInfo().nativeLibraryDir + "/libcsnet.so -c /dev/null";
+            Process process = Runtime.getRuntime().exec(cmd);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            return reader.readLine();
+        } catch (Exception e) {
+            return context.getString(R.string.csnet_version_unkonwn);
         }
     }
 
