@@ -6,8 +6,8 @@ android {
         applicationId "xyz.aite.csnet.socksdroid"
         minSdkVersion 21
         targetSdkVersion 31
-        versionCode 8
-        versionName "0.8"
+        versionCode 10
+        versionName "0.10"
         externalNativeBuild {
             ndkBuild {
                 cppFlags ''
