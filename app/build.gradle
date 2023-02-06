@@ -5,7 +5,11 @@ android {
     defaultConfig {
         applicationId "xyz.aite.csnet.socksdroid"
         minSdkVersion 21
-        targetSdkVersion 31
+        // 安卓10（targetSdkVersion 29+）取消了/data/data目录的执行权限，导致选择CSNet可执行文件的功能无法正常工作。
+        // 安卓9（targetSdkVersion 28）是支持执行自选二进制的最后一个版本。
+        // 参考资料：
+        // https://developer.android.com/about/versions/10/behavior-changes-10?hl=zh-cn#execute-permission
+        targetSdkVersion 28
         versionCode 10
         versionName "0.10"
         externalNativeBuild {
