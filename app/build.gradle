@@ -10,8 +10,8 @@ android {
         // 参考资料：
         // https://developer.android.com/about/versions/10/behavior-changes-10?hl=zh-cn#execute-permission
         targetSdkVersion 28
-        versionCode 10
-        versionName "0.10"
+        versionCode 11
+        versionName "0.11"
         externalNativeBuild {
             ndkBuild {
                 cppFlags ''
