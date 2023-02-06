@@ -47,5 +47,7 @@
     <string name="cannot_resolve_host">Cannot resolve server host: %s</string>
     <string name="csnet_version">CSNet Binary Version</string>
     <string name="csnet_version_unkonwn">Fail to read</string>
+    <string name="pick_csnet_binary">Pick CSNet Binary</string>
+    <string name="reset_csnet_binary">Reset CSNet Binary</string>
 
 </resources>

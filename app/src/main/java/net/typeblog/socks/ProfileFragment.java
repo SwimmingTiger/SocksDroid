@@ -7,7 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.net.VpnService;
 import android.os.Bundle;
 import android.os.Handler;
@@ -33,8 +33,6 @@ import android.widget.Toast;
 import net.typeblog.socks.util.Profile;
 import net.typeblog.socks.util.ProfileManager;
 import net.typeblog.socks.util.Utility;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -97,6 +95,8 @@ public class ProfileFragment extends PreferenceFragment implements Preference.On
     private CheckBoxPreference mPrefUserpw, mPrefPerApp, mPrefAppBypass, mPrefIPv6, mPrefUDP, mPrefAuto;
     private Context context;
 
+    private static final int PICK_CSNET_BINARY = 54321;
+
     public void setContext(Context context) {
         this.context = context;
     }
@@ -138,9 +138,27 @@ public class ProfileFragment extends PreferenceFragment implements Preference.On
         } else if (id == R.id.prof_del) {
             removeProfile();
             return true;
+        } else if (id == R.id.pick_csnet_binary) {
+            pickCsnetBinary();
+            return true;
+        } else if (id == R.id.reset_csnet_binary) {
+            resetCsnetBinary();
+            return true;
         } else {
             return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void pickCsnetBinary() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/octet-stream");
+        startActivityForResult(intent, PICK_CSNET_BINARY);
+    }
+
+    private void resetCsnetBinary() {
+        Utility.resetCsnetBinary(context);
+        showCsnetVersion();
     }
 
     @Override
@@ -256,8 +274,17 @@ public class ProfileFragment extends PreferenceFragment implements Preference.On
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
-        if (resultCode == Activity.RESULT_OK) {
+        if (resultCode != Activity.RESULT_OK) {
+            return;
+        }
+        if (requestCode == PICK_CSNET_BINARY) {
+            if (data == null) {
+                return;
+            }
+            Uri csnetBinary = data.getData();
+            Utility.writeCsnetBinary(context, csnetBinary);
+            showCsnetVersion();
+        } else {
             Utility.startVpn(getActivity(), mProfile, new StartVpnCallback());
         }
     }

@@ -46,5 +46,7 @@
     <string name="cannot_resolve_host">解析服务器域名失败: %s</string>
     <string name="csnet_version">CSNet程序版本</string>
     <string name="csnet_version_unkonwn">读取失败</string>
+    <string name="pick_csnet_binary">选择CSNet可执行文件</string>
+    <string name="reset_csnet_binary">还原CSNet可执行文件</string>
 
 </resources>

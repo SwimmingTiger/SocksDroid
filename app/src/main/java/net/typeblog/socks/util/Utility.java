@@ -2,6 +2,7 @@ package net.typeblog.socks.util;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -11,6 +12,7 @@ import android.widget.Toast;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -149,19 +151,62 @@ public class Utility {
         }
     }
 
+    public static void writeCsnetBinary(Context context, Uri csnetBinary) {
+        try {
+            InputStream input = context.getContentResolver().openInputStream(csnetBinary);
+            File file = new File(context.getFilesDir(), "libcsnet.so");
+            OutputStream output = new FileOutputStream(file);
+            byte[] buffer = new byte[4096];
+            int read;
+            while ((read = input.read(buffer)) != -1) {
+                output.write(buffer, 0, read);
+            }
+            output.flush();
+            output.close();
+            input.close();
+
+            // 设置权限 0755
+            file.setWritable(true, true);
+            file.setReadable(true, false);
+            file.setExecutable(true, false);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void resetCsnetBinary(Context context) {
+        File file = new File(context.getFilesDir(), "libcsnet.so");
+        if (file.exists()) {
+            file.delete();
+        }
+    }
+
+    public static String getCsnetBinary(Context context) {
+        File file = new File(context.getFilesDir(), "libcsnet.so");
+        if (file.canExecute()) {
+            return file.getPath();
+        } else {
+            return context.getApplicationInfo().nativeLibraryDir + "/libcsnet.so";
+        }
+    }
+
     public static String getCsnetVersion(Context context) {
         try {
-            String cmd = context.getApplicationInfo().nativeLibraryDir + "/libcsnet.so -c /dev/null";
+            String cmd = getCsnetBinary(context) + " -c /dev/null";
+            Log.d(TAG, "get csnet version: " + cmd);
             Process process = Runtime.getRuntime().exec(cmd);
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            return reader.readLine();
+            String version = reader.readLine();
+            Log.d(TAG, "csnet version: " + version);
+            return version;
         } catch (Exception e) {
+            e.printStackTrace();
             return context.getString(R.string.csnet_version_unkonwn);
         }
     }
 
     public static int startCsnet(Context context) {
-        String cmd = context.getApplicationInfo().nativeLibraryDir + "/libcsnet.so -c " + context.getFilesDir() + "/csnet_client_config.json";
+        String cmd = getCsnetBinary(context) + " -c " + context.getFilesDir() + "/csnet_client_config.json";
         Log.d(TAG, "starting csnet: " + cmd);
         return exec(cmd, false);
     }
